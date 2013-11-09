@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>Imp color picker</title>
+        <script type="text/javascript" src="jscolor/jscolor.js"></script>
+        <script type="text/javascript">
+            var agentUrl = "https://agent.electricimp.com/sjz8zHMFUs89";
+
+            function ajax(method, url, data, cb) {
+                var xmlhttp;
+
+                if (window.XMLHttpRequest) {
+                    // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp = new XMLHttpRequest();
+                } else {
+                    // code for IE6, IE5
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+
+                xmlhttp.onreadystatechange = function() {
+                    if (xmlhttp.readyState == 4) {
+                        cb(xmlhttp);
+                    }
+                }
+
+                xmlhttp.open(method, url, true);
+                xmlhttp.send(data);
+            }
+
+            function urlencode(obj) {
+                var ret = [];
+
+                for (var i in obj)
+                {
+                    ret.push(encodeURIComponent(i) + "=" + encodeURIComponent(obj[i]));
+                }
+
+                return ret.join("&");
+            }
+
+            function deepCompare(a, b)
+            {
+                return JSON.stringify(a) === JSON.stringify(b);
+            }
+
+            var requestedColors = {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            };
+            var oldColors = JSON.parse(JSON.stringify(requestedColors));
+
+            function updateColor(color)
+            {
+                var userColors = {
+                    "red": parseInt(color.rgb[0]*255),
+                    "green": parseInt(color.rgb[1]*255),
+                    "blue": parseInt(color.rgb[2]*255)
+                };
+
+                if (!deepCompare(userColors, requestedColors))
+                {
+                    requestedColors = userColors;
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", function(){
+                setInterval(function(){
+                    if (!deepCompare(requestedColors, oldColors))
+                    {
+                        ajax("GET", agentUrl + "?" + urlencode(requestedColors), "", function(){});
+                        oldColors = JSON.parse(JSON.stringify(requestedColors));
+                    }
+                }, 50);
+            });
+        </script>
+    </head>
+    <body>
+        Pick your color: <input class="color {onImmediateChange:'updateColor(this);'}" value="66ff00">
+    </body>
+</html>
